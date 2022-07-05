@@ -1,0 +1,72 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - '**'
+
+jobs:
+  create_release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          generate_release_notes: false
+
+  build_release:
+    name: Build Release
+    needs: create_release
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        container:
+        - 'ubuntu:latest'
+        - 'ubuntu:focal'
+        - 'debian:bullseye'
+    container:
+      image: ${{ matrix.container }}
+    steps:
+      - name: Set environment and install software
+        run: |
+          export DEBIAN_FRONTEND=noninteractive
+          apt-get update
+          apt-get install -y curl gnupg2 ca-certificates lsb-release git libmaxminddb-dev build-essential zlib1g-dev libpcre3 libpcre3-dev libtool autoconf automake wget unzip
+          echo "deb http://nginx.org/packages/mainline/`lsb_release -is | tr '[:upper:]' '[:lower:]'` `lsb_release -cs` nginx" | tee -a  /etc/apt/sources.list.d/nginx.list > /dev/null
+          echo "deb-src http://nginx.org/packages/mainline/`lsb_release -is | tr '[:upper:]' '[:lower:]'` `lsb_release -cs` nginx" | tee -a /etc/apt/sources.list.d/nginx.list > /dev/null
+          curl -fsSL https://nginx.org/keys/nginx_signing.key | apt-key add -
+          apt-get update
+          apt-get build-dep -y nginx
+      - name: Clone repositories
+        run: |
+          cd /usr/src/
+          apt-get source nginx
+          git clone --depth 1 https://github.com/luborjurena/ngx-ip2location.git
+          git clone --depth 1 https://github.com/leev/ngx_http_geoip2_module.git
+          git clone --depth 1 https://github.com/google/ngx_brotli.git
+          git clone --depth 1 https://github.com/ip2location/ip2proxy-nginx.git
+          git clone --depth 1 https://github.com/ip2location/ip2proxy-c.git
+          git clone --depth 1 --branch 8.0.1 https://github.com/chrislim2888/IP2Location-C-Library.git
+      - name: Compile requirements
+        run: |
+          cd /usr/src/ngx_brotli
+          git submodule update --init
+          cd /usr/src/IP2Location-C-Library
+          autoreconf -i -v --force && ./configure && make && make install
+          cd /usr/src/ip2proxy-c
+          autoreconf -i -v --force && ./configure && make && make install
+      - name: Build package
+        run: |
+          cd /usr/src/nginx-1* && sed -i '0,/--with-stream_ssl_preread_module/s//--with-stream_ssl_preread_module --add-module=\/usr\/src\/ngx-ip2location --add-module=\/usr\/src\/ngx_http_geoip2_module --add-module=\/usr\/src\/ngx_brotli --add-module=\/usr\/src\/ip2proxy-nginx /' debian/rules && sed -i 's/dh_shlibdeps -a/dh_shlibdeps --dpkg-shlibdeps-params=--ignore-missing-info/g' debian/rules
+          cd /usr/src/nginx-1* && dpkg-buildpackage -b
+          ls -la /usr/src/
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.create_release.outputs.tag-name }}
+          files: /usr/src/nginx_*.deb
