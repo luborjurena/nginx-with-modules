@@ -51,7 +51,7 @@ jobs:
           git clone --depth 1 https://github.com/google/ngx_brotli.git
           git clone --depth 1 https://github.com/ip2location/ip2proxy-nginx.git
           git clone --depth 1 https://github.com/ip2location/ip2proxy-c.git
-          git clone --depth 1 --branch 8.0.1 https://github.com/chrislim2888/IP2Location-C-Library.git
+          git clone --depth 1 --branch 8.5.1 https://github.com/chrislim2888/IP2Location-C-Library.git
       - name: Compile requirements
         run: |
           cd /usr/src/ngx_brotli
