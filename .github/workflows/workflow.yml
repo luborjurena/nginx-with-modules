@@ -36,7 +36,7 @@ jobs:
         run: |
           export DEBIAN_FRONTEND=noninteractive
           apt-get update
-          apt-get install -y curl gnupg2 ca-certificates lsb-release git libmaxminddb-dev build-essential zlib1g-dev libpcre3 libpcre3-dev libtool autoconf automake wget unzip
+          apt-get install -y curl gnupg2 ca-certificates lsb-release git libmaxminddb-dev build-essential zlib1g-dev libpcre3 libpcre3-dev libtool autoconf automake libbrotli-dev wget unzip
           echo "deb http://nginx.org/packages/mainline/`lsb_release -is | tr '[:upper:]' '[:lower:]'` `lsb_release -cs` nginx" | tee -a  /etc/apt/sources.list.d/nginx.list > /dev/null
           echo "deb-src http://nginx.org/packages/mainline/`lsb_release -is | tr '[:upper:]' '[:lower:]'` `lsb_release -cs` nginx" | tee -a /etc/apt/sources.list.d/nginx.list > /dev/null
           curl -fsSL https://nginx.org/keys/nginx_signing.key | apt-key add -
