@@ -47,7 +47,6 @@ jobs:
           cd /usr/src/
           apt-get source nginx
           git clone --depth 1 https://github.com/ip2location/ip2location-nginx.git
-          git clone --depth 1 https://github.com/leev/ngx_http_geoip2_module.git
           git clone --depth 1 https://github.com/google/ngx_brotli.git
           git clone --depth 1 https://github.com/ip2location/ip2proxy-nginx.git
           git clone --depth 1 https://github.com/ip2location/ip2proxy-c.git
@@ -62,7 +61,7 @@ jobs:
           autoreconf -i -v --force && ./configure && make && make install
       - name: Build package
         run: |
-          cd /usr/src/nginx-1* && sed -i '0,/--with-stream_ssl_preread_module/s//--with-stream_ssl_preread_module --add-module=\/usr\/src\/ip2location-nginx --add-module=\/usr\/src\/ngx_http_geoip2_module --add-module=\/usr\/src\/ngx_brotli --add-module=\/usr\/src\/ip2proxy-nginx /' debian/rules && sed -i 's/dh_shlibdeps -a/dh_shlibdeps --dpkg-shlibdeps-params=--ignore-missing-info/g' debian/rules
+          cd /usr/src/nginx-1* && sed -i '0,/--with-stream_ssl_preread_module/s//--with-stream_ssl_preread_module --add-module=\/usr\/src\/ip2location-nginx --add-module=\/usr\/src\/ngx_brotli --add-module=\/usr\/src\/ip2proxy-nginx /' debian/rules && sed -i 's/dh_shlibdeps -a/dh_shlibdeps --dpkg-shlibdeps-params=--ignore-missing-info/g' debian/rules
           cd /usr/src/nginx-1* && dpkg-buildpackage -b
           ls -la /usr/src/
       - name: Release
