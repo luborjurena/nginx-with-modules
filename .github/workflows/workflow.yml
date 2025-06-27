@@ -28,7 +28,7 @@ jobs:
         container:
         - 'ubuntu:latest'
         - 'ubuntu:focal'
-        - 'debian:bullseye'
+        - 'debian:bookworm'
     container:
       image: ${{ matrix.container }}
     steps:
